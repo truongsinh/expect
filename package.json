@@ -3,6 +3,10 @@
   , "version": "0.3.0-dev"
   , "description": "Expandable minimalistic BDD-style assertions for Node.JS and the browser."
   , "main": "./expect"
+  , "repository": {
+    "type": "git",
+    "url": "git://github.com/truongsinh/expect.git"
+  }
   , "devDependencies": {
         "mocha": "*"
       , "serve": "*"
