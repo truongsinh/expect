@@ -979,6 +979,8 @@
     //~~~possibly expensive deep test
     for (i = ka.length - 1; i >= 0; i--) {
       key = ka[i];
+      if(expect.eql(a[key], a) && expect.eql(b[key], b) )
+          break;
       if (!expect.eql(a[key], b[key]))
          return false;
     }
