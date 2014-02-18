@@ -942,6 +942,7 @@
            a.ignoreCase === b.ignoreCase && a.multiline === b.multiline;
   }
 
+  var pSlice = Array.prototype.slice;
   function objEquiv (a, b) {
     if (isUndefinedOrNull(a) || isUndefinedOrNull(b))
       return false;
