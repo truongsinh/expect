@@ -1,0 +1,30 @@
+{
+  "name": "expect",
+  "description": "Expandable minimalistic BDD-style assertions for Node.JS and the browser.",
+  "version": "0.2.1-dev",
+  "main": "expect.js",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "keywords": [
+    "test",
+    "assertion",
+    "assert",
+    "testing",
+    "expect",
+    "bdd"
+  ],
+  "authors": [
+    "TruongSinh Tran-Nguyen <i@truongsinh.pro>"
+  ],
+  "homepage": "https://github.com/truongsinh/expect",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/truongsinh/expect.git"
+  }
+}
