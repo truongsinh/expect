@@ -138,11 +138,13 @@ expect(person).to.be.a(Mammal);
 expect(program.version).to.match(/[0-9]+\.[0-9]+\.[0-9]+/);
 ```
 
-**contain**: asserts indexOf for an array or string. This flag is chainable.
+**contain**: asserts indexOf for an array or string, or child key-value for an object. This flag is chainable.
 
 ```js
 expect([1, 2]).to.contain(1);
 expect('hello world').to.contain('world');
+expect({ foo: 'bar', bar: 'foo' }).to.contain({ bar: 'foo' });
+expect({ foo: 'bar' }).to.not.contain({ foo: 'baz' });
 ```
 
 **length**: asserts array `.length`. This flag is chainable.
