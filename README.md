@@ -11,6 +11,38 @@ expect([]).to.be.an('array');
 expect(window).not.to.be.an(Image);
 ```
 
+## The future of Expect(.js)
+
+Reference https://github.com/LearnBoost/expect.js/issues/100
+It seems that https://github.com/LearnBoost is too busy with his work, and our beloved assertion library
+has not been updated for months, so I decided to fork it to my own Github account and started reviewing
+all PR, one by one.
+
+Some breaking changes might occur:
+
+- We shall contact https://www.npmjs.org/~onirame to claim npm package name `expect`, as this package
+was last updated 2 years ago, [ref](https://groups.google.com/forum/#!topic/npm-/odEwfBoxwy4).
+So you might in the future use `npm install expect` and `var expect = require('expect')`. In the mean time,
+in your package.json, you can use `"mocha": "git://github.com/truongsinh/expect"`
+
+- Some refactor and restructure shall be done to make this library modular, inspired by Chai.js
+
+## Contribution
+
+Ideas and PRs are welcome
+
+1. If you are fixing a bug, do it in BDD manner, i.e. write a test case that fails first, then modify the library such
+that it passes that test case.
+
+1. If you are developing a new feature, ask yourself should it be in core or a plugin. Issues page is the best place
+to discuss. We shall keep a list of available plugin in this README (or a separate list in a far future when it is too
+crowded).
+
+1. Fell free to bump package.json, bower.json and expect.version **build number**, for example "0.2.1-dev", and remember
+to keep it consistent between the 3.
+
+1. All PR are subject to be modified, such as code format, version number.
+
 ## Features
 
 - Cross-browser: works on IE6+, Firefox, Safari, Chrome, Opera.
