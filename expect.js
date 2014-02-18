@@ -245,6 +245,7 @@
    * @api public
    */
 
+  Assertion.prototype.between =
   Assertion.prototype.within = function (start, finish) {
     var range = start + '..' + finish;
     this.assert(

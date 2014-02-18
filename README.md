@@ -197,10 +197,11 @@ expect(fn).withArgs(invalid, arg).to.throwException();
 expect(fn).withArgs(valid, arg).to.not.throwException();
 ```
 
-**within**: asserts a number within a range. This flag is chainable.
+**within**/**between**: asserts a number within a range. This flag is chainable.
 
 ```js
-expect(1).to.be.within(0, Infinity);
+expect(1).to.be.within(0, Infinity)
+expect(2).to.be.between(1, 3);
 ```
 
 **greaterThan**/**above**: asserts `>`. This flag is chainable.
