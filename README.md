@@ -97,11 +97,19 @@ expect(0).to.not.be.ok();
 
 ```js
 expect(1).to.be(1)
+expect(1.4 - 0.1).to.not.be(1.3); // see approximate
 expect(NaN).not.to.equal(NaN);
 expect(1).not.to.be(true)
 expect('1').to.not.be(1);
 ```
 
+**approximately / approximate**: handy for float rounding error. This flag is chainable.
+```js
+expect(1.4 - 0.1).to.be.approximately(1.3, 1e-15);
+expect(99.99).approximate(100, 0.1);
+```
+
+**ok**: asserts that the value is _truthy_ or not. This flag is terminal.
 **eql**: asserts loose equality that works with objects. This flag is chainable.
 
 ```js
