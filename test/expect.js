@@ -29,7 +29,7 @@ var nameSupported;
 describe('expect', function () {
 
   it('should have .version', function () {
-    expect(expect.version).to.match(/^\d+\.\d+\.\d+$/);
+    expect(expect.version).to.match(/^\d+\.\d+\.\d+(-[a-zA-Z0-9\-\.]+)*$/);
   });
 
   it('should work in its basic form', function () {
@@ -67,6 +67,10 @@ describe('expect', function () {
     err(function () {
       expect('test').to.not.be.ok();
     }, "expected 'test' to be falsy");
+
+    err(function () {
+      expect().to.not.be.ok().and.to.be.ok();
+    }, "Cannot read property 'and' of null");
   });
 
   it('should test false', function () {
@@ -167,6 +171,10 @@ describe('expect', function () {
     err(function () {
       expect(anonItWorks).to.throwException();
     }, 'expected fn to throw an exception');
+
+    err(function () {
+      expect(anonItThrows).to.throwException().and.to.throwException();
+    }, "Cannot read property 'and' of null");
 
     if (nameSupported) {
       err(function () {
@@ -372,6 +380,10 @@ describe('expect', function () {
     err(function () {
       expect({}).to.not.be.empty();
     }, "expected {} to not be empty");
+
+    err(function () {
+      expect([]).to.be.empty().and.to.be.empty();
+    }, "Cannot read property 'and' of null");
   });
 
   it('should test property(name)', function () {

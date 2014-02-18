@@ -76,7 +76,15 @@ Expose the `expect.js` found at the top level of this repository.
 
 ## API
 
-**ok**: asserts that the value is _truthy_ or not
+There are 4 terminal flag: `ok`, `throw`, `empty`, `fail`. The rest are chainable, i.e. you can use `and` after them.
+
+**and**: make chainable asserts
+
+```js
+expect([1, 2]).not.be.empty().and.to.contain(1).and.to.contain(2).and.not.to.contain(3);
+```
+
+**ok**: asserts that the value is _truthy_ or not. This flag is terminal.
 
 ```js
 expect(1).to.be.ok();
@@ -85,7 +93,7 @@ expect({}).to.be.ok();
 expect(0).to.not.be.ok();
 ```
 
-**be** / **equal**: asserts `===` equality
+**be** / **equal**: asserts `===` equality. This flag is chainable.
 
 ```js
 expect(1).to.be(1)
@@ -94,14 +102,14 @@ expect(1).not.to.be(true)
 expect('1').to.not.be(1);
 ```
 
-**eql**: asserts loose equality that works with objects
+**eql**: asserts loose equality that works with objects. This flag is chainable.
 
 ```js
 expect({ a: 'b' }).to.eql({ a: 'b' });
 expect(1).to.eql('1');
 ```
 
-**a**/**an**: asserts `typeof` with support for `array` type and `instanceof`
+**a**/**an**: asserts `typeof` with support for `array` type and `instanceof`. This flag is chainable.
 
 ```js
 // typeof with optional `array`
@@ -116,27 +124,27 @@ expect(tobi).to.be.a(Ferret);
 expect(person).to.be.a(Mammal);
 ```
 
-**match**: asserts `String` regular expression match
+**match**: asserts `String` regular expression match. This flag is chainable.
 
 ```js
 expect(program.version).to.match(/[0-9]+\.[0-9]+\.[0-9]+/);
 ```
 
-**contain**: asserts indexOf for an array or string
+**contain**: asserts indexOf for an array or string. This flag is chainable.
 
 ```js
 expect([1, 2]).to.contain(1);
 expect('hello world').to.contain('world');
 ```
 
-**length**: asserts array `.length`
+**length**: asserts array `.length`. This flag is chainable.
 
 ```js
 expect([]).to.have.length(0);
 expect([1,2,3]).to.have.length(3);
 ```
 
-**empty**: asserts that an array is empty or not
+**empty**: asserts that an array is empty or not. This flag is terminal.
 
 ```js
 expect([]).to.be.empty();
@@ -146,7 +154,7 @@ expect({ my: 'object' }).to.not.be.empty();
 expect([1,2,3]).to.not.be.empty();
 ```
 
-**property**: asserts presence of an own property (and value optionally)
+**property**: asserts presence of an own property (and value optionally). This flag is chainable.
 
 ```js
 expect(window).to.have.property('expect')
@@ -154,7 +162,7 @@ expect(window).to.have.property('expect', expect)
 expect({a: 'b'}).to.have.property('a');
 ```
 
-**key**/**keys**: asserts the presence of a key. Supports the `only` modifier
+**key**/**keys**: asserts the presence of a key. Supports the `only` modifier. This flag is chainable.
 
 ```js
 expect({ a: 'b' }).to.have.key('a');
@@ -163,7 +171,7 @@ expect({ a: 'b', c: 'd' }).to.only.have.keys(['a', 'c']);
 expect({ a: 'b', c: 'd' }).to.not.only.have.key('a');
 ```
 
-**throwException**/**throwError**: asserts that the `Function` throws or not when called
+**throwException**/**throwError**: asserts that the `Function` throws or not when called. This flag is terminal.
 
 ```js
 expect(fn).to.throwError(); // synonym of throwException
@@ -174,34 +182,34 @@ expect(fn).to.throwException(/matches the exception message/);
 expect(fn2).to.not.throwException();
 ```
 
-**withArgs**: creates anonymous function to call fn with arguments
+**withArgs**: creates anonymous function to call fn with arguments. This flag is chainable.
 
 ```js
 expect(fn).withArgs(invalid, arg).to.throwException();
 expect(fn).withArgs(valid, arg).to.not.throwException();
 ```
 
-**within**: asserts a number within a range
+**within**: asserts a number within a range. This flag is chainable.
 
 ```js
 expect(1).to.be.within(0, Infinity);
 ```
 
-**greaterThan**/**above**: asserts `>`
+**greaterThan**/**above**: asserts `>`. This flag is chainable.
 
 ```js
 expect(3).to.be.above(0);
 expect(5).to.be.greaterThan(3);
 ```
 
-**lessThan**/**below**: asserts `<`
+**lessThan**/**below**: asserts `<`. This flag is chainable.
 
 ```js
 expect(0).to.be.below(3);
 expect(1).to.be.lessThan(3);
 ```
 
-**fail**: explicitly forces failure.
+**fail**: explicitly forces failure. This flag is terminal.
 
 ```js
 expect().fail()

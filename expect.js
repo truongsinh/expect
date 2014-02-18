@@ -13,7 +13,7 @@
    * Exports version.
    */
 
-  expect.version = '0.2.1-dev';
+  expect.version = '0.3.0-dev';
 
   /**
    * Possible assertion flags.
@@ -116,6 +116,7 @@
         !!this.obj
       , function(){ return 'expected ' + i(this.obj) + ' to be truthy' }
       , function(){ return 'expected ' + i(this.obj) + ' to be falsy' });
+    return null;
   };
 
   /**
@@ -172,6 +173,7 @@
         thrown
       , function(){ return 'expected ' + name + ' to throw an exception' }
       , function(){ return 'expected ' + name + ' not to throw an exception' });
+    return null;
   };
 
   /**
@@ -202,7 +204,7 @@
         expectation
       , function(){ return 'expected ' + i(this.obj) + ' to be empty' }
       , function(){ return 'expected ' + i(this.obj) + ' to not be empty' });
-    return this;
+    return null;
   };
 
   /**
@@ -487,7 +489,7 @@
   Assertion.prototype.fail = function (msg) {
     var error = function() { return msg || "explicit failure"; }
     this.assert(false, error, error);
-    return this;
+    return null;
   };
 
   /**
