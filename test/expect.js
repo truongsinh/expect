@@ -407,11 +407,11 @@ describe('expect', function () {
 
     err(function () {
       expect('').to.not.be.empty();
-    }, "expected '' to not be empty");
+    }, "expected '' to not be empty 1");
 
     err(function () {
       expect({}).to.not.be.empty();
-    }, "expected {} to not be empty");
+    }, "expected {} to not be empty 2");
 
     err(function () {
       expect([]).to.be.empty().and.to.be.empty();
@@ -628,4 +628,19 @@ describe('expect', function () {
     expect(expect.lessThan).to.equal(expect.below);
   });
 
+});
+describe('Object define', function(){
+  it.only('should', function(){
+
+//        expect('z').to.not.have.be.include.equal('a');
+//    expect('a').to.be('a');
+    expect('b').to.a('string');
+//    expect('c').to.not.be('z');
+    expect('d').to.not.be.a('number');
+//    expect('e').to.be.not.a('number');
+//    expect('').to.be.empty();
+//    expect('g').to.not.be.empty();
+//    expect('y').to.have.property('length');
+//    expect('h').to.be.not.empty();
+  });
 });

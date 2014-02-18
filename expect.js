@@ -1,5 +1,56 @@
 (function (global, module) {
 
+  // Super amazing, cross browser property function, based on http://thewikies.com/
+  var addProperty = function addProperty(obj, name, onGet, onSet) {
+
+    // wrapper functions
+    var oldValue = obj[name];
+    var getFn = function() {
+      return onGet.apply(obj, [oldValue]);
+    };
+    var setFn = function(newValue) {
+      return oldValue = onSet.apply(obj, [newValue]);
+    };
+
+    // Modern browsers, IE9+, and IE8 (must be a DOM object),
+    if (Object.defineProperty) {
+      // must be a DOM object (even if it's not a real tag) attached to document
+      var myObject = document.createElement('fake');
+      document.body.appendChild(myObject);
+      Object.defineProperty(obj, name, {
+        get: getFn,
+        set: setFn
+      });
+
+      // Older Mozilla
+    } else {
+      if (obj.__defineGetter__) {
+        obj.__defineGetter__(name, getFn);
+        obj.__defineSetter__(name, setFn);
+        // IE6-7
+        // must be a real DOM object (to have attachEvent) and must be attached to document (for onpropertychange to fire)
+      } else {
+        var onPropertyChange = function(e) {
+          if (event.propertyName == name) {
+            // temporarily remove the event so it doesn't fire again and create a loop
+            obj.detachEvent("onpropertychange", onPropertyChange);
+            // get the changed value, run it through the set function
+            setFn(obj[name]);
+            // restore the get function
+            obj[name] = getFn;
+            obj[name].toString = getFn;
+            // restore the event
+            obj.attachEvent("onpropertychange", onPropertyChange);
+          }
+        };
+        obj[name] = getFn;
+        obj[name].toString = getFn;
+        obj.attachEvent("onpropertychange", onPropertyChange);
+
+      }
+    }
+  }
+  addProperty.isIe8 = true;
   var exports = module.exports;
 
   /**
@@ -19,16 +70,39 @@
    * Possible assertion flags.
    */
 
-  var flags = {
-      not: ['to', 'be', 'have', 'include', 'only']
-    , to: ['be', 'have', 'include', 'only', 'not']
-    , only: ['have']
-    , have: ['own']
-    , be: ['an']
-  };
+//  var flags = {
+//      not: ['to', 'be', 'have', 'include', 'only']
+//    , to: ['be', 'have', 'include', 'only', 'not']
+//    , only: ['have']
+//    , have: ['own']
+//    , be: ['an']
+//  };
+  var flagList = [
+    'include',
+    'to',
+    'not',
+    'be',
+    'have',
+    'only'
+  ]
 
   function expect (obj) {
-    return new Assertion(obj);
+    var assertion;
+    if(addProperty.isIe8){
+      // assertion is a DOM element
+      assertion = document.createElement('fake');
+      // this DOM element must be appended in document
+      document.body.appendChild(assertion);
+      // this DOM element must "inherits" real Assertion
+      for(var k in Assertion.prototype){
+        assertion[k] = Assertion.prototype[k];
+      }
+      // prepare by calling constructor
+      Assertion.call(assertion, obj, {}, null, 'from expect');
+    } else {
+      assertion = new Assertion(obj);
+    }
+    return assertion;
   }
 
   /**
@@ -37,46 +111,42 @@
    * @api private
    */
 
-  function Assertion (obj, flag, parent) {
+  function Assertion(obj, flags, bool, marker) {
+    console.log(marker, 'marker');
     this.obj = obj;
-    this.flags = {};
-
-    if (undefined != parent) {
-      this.flags[flag] = true;
-
-      for (var i in parent.flags) {
-        if (parent.flags.hasOwnProperty(i)) {
-          this.flags[i] = true;
-        }
-      }
+    console.log('!this.flags', this.flags, 'marker', marker)
+    if(!this.flags) {
+      this.flags = {};
     }
-
-    var $flags = flag ? flags[flag] : keys(flags)
-      , self = this;
-
-    if ($flags) {
-      for (var i = 0, l = $flags.length; i < l; i++) {
-        // avoid recursion
-        if (this.flags[$flags[i]]) continue;
-
-        var name = $flags[i]
-          , assertion = new Assertion(this.obj, name, this)
-
-        if ('function' == typeof Assertion.prototype[name]) {
-          // clone the function, make sure we dont touch the prot reference
-          var old = this[name];
-          this[name] = function () {
-            return old.apply(self, arguments);
-          };
-
-          for (var fn in Assertion.prototype) {
-            if (Assertion.prototype.hasOwnProperty(fn) && fn != name) {
-              this[name][fn] = bind(assertion[fn], assertion);
-            }
+    var closure = function closure(flag) {
+      return function() {
+        this.flags[flag] = true;
+        return this;
+      }
+    };
+    for (var i in flagList) {
+      var flag = flagList[i];
+      if (flag === 'be') {
+        console.log(bool, 'bool');
+        if(!bool) {
+          var fn = this.be;
+          // this function must "inherits" real Assertion
+          for (var k in Assertion.prototype) {
+            console.log('#k', k)
+            fn[k] = Assertion.prototype[k];
           }
-        } else {
-          this[name] = assertion;
+          // prepare by calling constructor, and ignore "cannot redefined property" if any
+          try {
+            console.log('%try')
+            Assertion.call(fn, obj, false, true, 'try catch');
+            console.log(this.flags);
+            fn.flags = this.flags;
+          } catch (e) {
+            console.log(e)
+          }
         }
+      } else {
+        addProperty(this, flag, closure(flag), function(){});
       }
     }
   }
@@ -88,6 +158,7 @@
    */
 
   Assertion.prototype.assert = function (truth, msg, error, expected) {
+    console.log(this.obj, this.flags);
     var msg = this.flags.not ? error : msg
       , ok = this.flags.not ? !truth : truth
       , err;
@@ -101,8 +172,6 @@
       }
       throw err;
     }
-
-    this.and = new Assertion(this.obj);
   };
 
   /**
@@ -196,7 +265,10 @@
         expect(this.obj).to.be.an('object');
       }
 
-      expect(this.obj).to.have.property('length');
+      var flags = this.flags;
+      console.log('!!!!', this.flags, flags, this.flags === flags, this === this);
+      expect(this.obj).to.only.have.property('length');
+      console.log('!!!!2', this.flags, flags, this.flags === flags, this === this);
       expectation = !this.obj.length;
     }
 
