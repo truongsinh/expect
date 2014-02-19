@@ -68,9 +68,7 @@ describe('expect', function () {
       expect('test').to.not.be.ok();
     }, "expected 'test' to be falsy");
 
-    err(function () {
-      expect().to.not.be.ok().and.to.be.ok();
-    }, "Cannot read property 'and' of null");
+    expect().to.not.be.ok().and.to.be(undefined);
   });
 
   it('should test false', function () {
@@ -171,10 +169,6 @@ describe('expect', function () {
     err(function () {
       expect(anonItWorks).to.throwException();
     }, 'expected fn to throw an exception');
-
-    err(function () {
-      expect(anonItThrows).to.throwException().and.to.throwException();
-    }, "Cannot read property 'and' of null");
 
     if (nameSupported) {
       err(function () {
@@ -388,6 +382,8 @@ describe('expect', function () {
     expect({}).to.be.empty();
     expect([]).to.be.empty();
     expect({ length: 0 }).to.be.empty();
+    expect([]).to.be.empty.and.to.be.empty();
+    expect([]).to.be.empty().and.to.be.empty;
 
     err(function () {
       expect(null).to.be.empty();
@@ -407,15 +403,11 @@ describe('expect', function () {
 
     err(function () {
       expect('').to.not.be.empty();
-    }, "expected '' to not be empty 1");
+    }, "expected '' to not be empty");
 
     err(function () {
       expect({}).to.not.be.empty();
-    }, "expected {} to not be empty 2");
-
-    err(function () {
-      expect([]).to.be.empty().and.to.be.empty();
-    }, "Cannot read property 'and' of null");
+    }, "expected {} to not be empty");
   });
 
   it('should test property(name)', function () {
@@ -630,17 +622,20 @@ describe('expect', function () {
 
 });
 describe('Object define', function(){
-  it.only('should', function(){
+  it('should', function(){
 
-//        expect('z').to.not.have.be.include.equal('a');
-//    expect('a').to.be('a');
+        expect('z').to.not.have.be.include.equal('a');
+      expect('a').to.be('a');
     expect('b').to.a('string');
-//    expect('c').to.not.be('z');
+    expect('c').to.not.be('z');
     expect('d').to.not.be.a('number');
-//    expect('e').to.be.not.a('number');
-//    expect('').to.be.empty();
-//    expect('g').to.not.be.empty();
-//    expect('y').to.have.property('length');
-//    expect('h').to.be.not.empty();
+    expect('e').to.be.not.a('number');
+    expect('').to.be.empty();
+    expect('g').to.not.be.empty();
+    expect('y').to.have.property('length');
+    expect('h').to.be.not.empty();
   });
+  it('should distinguish `not` flag', function(){
+    expect(2).not.eql(3).and.eql(2);
+  })
 });
