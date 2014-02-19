@@ -33,7 +33,8 @@ describe('expect', function () {
   });
 
   it('should work in its basic form', function () {
-    expect('test').to.be.a('string');
+    // @todo
+    expect('test').to.a('string');
   });
 
   it('should test true', function () {
@@ -54,21 +55,24 @@ describe('expect', function () {
     }, "expected false to not equal false")
   });
 
-  it('should test ok', function () {
-    expect(true).to.be.ok();
-    expect(false).to.not.be.ok();
-    expect(1).to.be.ok();
-    expect(0).to.not.be.ok();
+  it('should test truth', function () {
+    // @todo
+    expect(true).to.aver();
+    expect(false).to.not.aver();
+    expect(1).to.aver();
+    expect(0).not.to.aver();
 
     err(function () {
-      expect('').to.be.ok();
-    }, "expected '' to be truthy");
+      expect('').to.aver();
+    }, "expected '' to aver");
 
     err(function () {
-      expect('test').to.not.be.ok();
-    }, "expected 'test' to be falsy");
+      expect('test').to.not.aver();
+    }, "expected 'test' not to aver");
 
-    expect().to.not.be.ok().and.to.be(undefined);
+    expect().not.to.aver().and.to.be(undefined);
+    var a = expect('2');
+    expect(a.aver).to.be(a.ok);
   });
 
   it('should test false', function () {
@@ -126,7 +130,7 @@ describe('expect', function () {
       subject = e;
     });
 
-    expect(subject).to.be.an(Error);
+    expect(subject).to.an(Error);
 
     expect(itThrowsMessage).to.throwException(/tobi/);
     expect(itThrowsMessage).to.not.throwException(/test/);
@@ -192,28 +196,28 @@ describe('expect', function () {
   });
 
   it('should test arrays', function () {
-    expect([]).to.be.a('array');
-    expect([]).to.be.an('array');
+    expect([]).to.a('array');
+    expect([]).to.an('array');
 
     err(function () {
-      expect({}).to.be.an('array');
+      expect({}).to.an('array');
     }, 'expected {} to be an array');
   });
 
   it('should test regex', function () {
-    expect(/a/).to.be.an('regexp');
-    expect(/a/).to.be.a('regexp');
+    expect(/a/).to.an('regexp');
+    expect(/a/).to.a('regexp');
 
     err(function () {
-      expect(null).to.be.a('regexp');
+      expect(null).to.a('regexp');
     }, 'expected null to be a regexp');
   });
 
   it('should test objects', function () {
-    expect({}).to.be.an('object');
+    expect({}).to.an('object');
 
     err(function () {
-      expect(null).to.be.an('object');
+      expect(null).to.an('object');
     }, 'expected null to be an object');
   });
 
@@ -223,79 +227,80 @@ describe('expect', function () {
   });
 
   it('should test typeof', function () {
-    expect('test').to.be.a('string');
+    expect('test').to.a('string');
 
     err(function () {
-      expect('test').to.not.be.a('string');
+      expect('test').to.not.a('string');
     }, "expected 'test' not to be a string");
 
-    expect(5).to.be.a('number');
+    expect(5).to.a('number');
 
     err(function () {
-      expect(5).to.not.be.a('number');
+      expect(5).to.not.a('number');
     }, "expected 5 not to be a number");
   });
 
   it('should test instanceof', function () {
     function Foo(){}
-    expect(new Foo()).to.be.a(Foo);
+    expect(new Foo()).to.a(Foo);
 
     if (nameSupported) {
       err(function () {
-        expect(3).to.be.a(Foo);
+        expect(3).to.a(Foo);
       }, "expected 3 to be an instance of Foo");
     } else {
       err(function () {
-        expect(3).to.be.a(Foo);
+        expect(3).to.a(Foo);
       }, "expected 3 to be an instance of supplied constructor");
     }
   });
 
-  it('should test within(start, finish)', function () {
-    expect(5).to.be.within(3,6);
-    expect(5).to.be.within(3,5);
-    expect(5).to.not.be.within(1,3);
+  it('should test between(start, finish)', function () {
+    expect(5).to.between(3,6);
+    expect(5).to.between(3,5);
+    expect(5).not.to.between(1,3);
 
     err(function () {
-      expect(5).to.not.be.within(4,6);
-    }, "expected 5 to not be within 4..6");
+      expect(5).not.to.between(4,6);
+    }, "expected 5 not to between 4..6");
 
     err(function () {
-      expect(10).to.be.within(50,100);
-    }, "expected 10 to be within 50..100");
+      expect(10).to.between(50,100);
+    }, "expected 10 to between 50..100");
   });
 
   it('should test approximately(value, delta)', function() {
     err(function () {
       expect(1.4 - 0.1).to.be(1.3);
     }, "expected 1.2999999999999998 to equal 1.3");
-    expect(1.4 - 0.1).to.be.approximately(1.3, 1e-15);
+    expect(1.4 - 0.1).to.approximate(1.3, 1e-15);
     expect(1.5).to.approximate(1.4, 0.2);
     expect(1.5).to.approximate(1.5, 10E-10);
     expect(1.5).to.not.approximate(1.4, 1E-2);
 
     err(function () {
       expect(99.99).to.not.approximate(100, 0.1);
-    }, "expected 99.99 to not be approximately 100 +- 0.1");
+    }, "expected 99.99 not to approximate 100 +- 0.1");
 
     err(function () {
       expect(99.99).to.approximate(105, 0.1);
-    }, "expected 99.99 to be approximately 105 +- 0.1");
+    }, "expected 99.99 to approximate 105 +- 0.1");
   });
 
-  it('should test above(n)', function () {
-    expect(5).to.be.above(2);
-    expect(5).to.be.greaterThan(2);
-    expect(5).to.not.be.above(5);
-    expect(5).to.not.be.above(6);
+  it('should test beGt(n)', function () {
+    expect(5).to.beGt(2);
+    expect(5).to.beGt(2);
+    expect(5).not.to.beGt(5);
+    expect(5).not.to.beGt(6);
+    var e = expect(9);
+    expect(e.beGt).to.and.to.be(e.above).to.be(e.greaterThan)
+    err(function () {
+      expect(5).to.beGt(6);
+    }, "expected 5 to be greater than 6");
 
     err(function () {
-      expect(5).to.be.above(6);
-    }, "expected 5 to be above 6");
-
-    err(function () {
-      expect(10).to.not.be.above(6);
-    }, "expected 10 to be below 6");
+      expect(10).not.to.beGt(6);
+    }, "expected 10 not to be greater than 6");
   });
 
   it('should test match(regexp)', function () {
@@ -329,14 +334,33 @@ describe('expect', function () {
     expect('test').to.eql('test');
     expect({ foo: 'bar' }).to.eql({ foo: 'bar' });
     expect(1).to.eql(1);
-    expect('4').to.eql(4);
+    expect('4').to.not.eql(4);
     expect(/a/gmi).to.eql(/a/mig);
     function returnArguments() { return arguments; }
     expect(returnArguments(0,1,2,3)).to.eql(returnArguments(0,1,2,3));
 
     err(function () {
       expect(4).to.eql(3);
-    }, 'expected 4 to sort of equal 3');
+    }, 'expected 4 to equal 3');
+  });
+  it('should test resemble(val)', function () {
+    var num = 0;
+    var obj = new String("0");
+    var str = "0";
+    var b = false;
+
+    expect(num).to.resemble(num);
+    expect(obj).to.resemble(obj);
+    expect(str).to.resemble(str);
+    expect(num).to.resemble(obj);
+    expect(num).to.resemble(str);
+    expect(obj).to.resemble(str);
+
+    expect(null).to.resemble(undefined);
+
+
+    expect(obj).not.to.resemble(null);
+    expect(obj).not.to.resemble(undefined);
   });
 
   it('should test equal(val)', function () {
@@ -378,41 +402,40 @@ describe('expect', function () {
   });
 
   it('should test empty', function () {
-    expect('').to.be.empty();
-    expect({}).to.be.empty();
-    expect([]).to.be.empty();
-    expect({ length: 0 }).to.be.empty();
-    expect([]).to.be.empty.and.to.be.empty();
-    expect([]).to.be.empty().and.to.be.empty;
+    expect('').to.empty();
+    expect({}).to.empty();
+    expect([]).to.empty();
+    expect({ length: 0 }).to.empty();
 
+    var e = expect({});
     err(function () {
-      expect(null).to.be.empty();
+      expect(null).to.empty();
     }, 'expected null to be an object');
 
     err(function () {
-      expect({ a: 'b' }).to.be.empty();
-    }, 'expected { a: \'b\' } to be empty');
+      expect({ a: 'b' }).to.empty();
+    }, 'expected { a: \'b\' } to empty');
 
     err(function () {
-      expect({ length: '0' }).to.be.empty();
-    }, 'expected { length: \'0\' } to be empty');
+      expect({ length: '0' }).to.empty();
+    }, 'expected { length: \'0\' } to empty');
 
     err(function () {
-      expect('asd').to.be.empty();
-    }, "expected 'asd' to be empty");
+      expect('asd').to.empty();
+    }, "expected 'asd' to empty");
 
     err(function () {
-      expect('').to.not.be.empty();
-    }, "expected '' to not be empty");
+      expect('').not.to.empty();
+    }, "expected '' not to empty");
 
     err(function () {
-      expect({}).to.not.be.empty();
-    }, "expected {} to not be empty");
+      expect({}).not.to.empty();
+    }, "expected {} not to empty");
   });
 
   it('should test property(name)', function () {
     expect('test').to.have.property('length');
-    expect(4).to.not.have.property('length');
+    expect(4).not.to.have.property('length');
     expect({ length: undefined }).to.have.property('length');
 
     err(function () {
@@ -587,17 +610,17 @@ describe('expect', function () {
   });
 
   it('should allow chaining with `and`', function () {
-    expect(5).to.be.a('number').and.be(5);
-    expect(5).to.be.a('number').and.not.be(6);
-    expect(5).to.be.a('number').and.not.be(6).and.not.be('5');
+    expect(5).to.a('number').and.be(5);
+    expect(5).to.a('number').and.not.be(6);
+    expect(5).to.a('number').and.not.be(6).and.not.be('5');
 
     err(function () {
-      expect(5).to.be.a('number').and.not.be(5);
+      expect(5).to.a('number').and.not.be(5);
     }, "expected 5 to not equal 5");
 
     err(function () {
-      expect(5).to.be.a('number').and.not.be(6).and.not.be.above(4);
-    }, "expected 5 to be below 4");
+      expect(5).to.a('number').and.not.to.be(6).and.beLt(4);
+    }, "expected 5 to be less than 4");
   });
 
   it('should fail with `fail`', function () {
@@ -622,19 +645,6 @@ describe('expect', function () {
 
 });
 describe('Object define', function(){
-  it('should', function(){
-
-        expect('z').to.not.have.be.include.equal('a');
-      expect('a').to.be('a');
-    expect('b').to.a('string');
-    expect('c').to.not.be('z');
-    expect('d').to.not.be.a('number');
-    expect('e').to.be.not.a('number');
-    expect('').to.be.empty();
-    expect('g').to.not.be.empty();
-    expect('y').to.have.property('length');
-    expect('h').to.be.not.empty();
-  });
   it('should distinguish `not` flag', function(){
     expect(2).not.eql(3).and.eql(2);
   })
