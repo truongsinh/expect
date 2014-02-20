@@ -88,8 +88,11 @@
       assertion = new Assertion(obj);
     }
     return assertion;
+  };
+  var utils = {};
+  expect.use = function(plugin){
+    plugin.call(utils, expect, utils);
   }
-
   /**
    * Exports version.
    */
@@ -108,9 +111,9 @@
    * @param {Function} handler
    * @returns {Function}
    */
-  expect.addProperty = function addProperty(name, handler) {
+  utils.addProperty = function addProperty(name, handler) {
     expect.flagHandlerMap[name] = handler;
-    return expect;
+    return utils;
   }
   /**
    *
@@ -118,7 +121,7 @@
    * @param methodHandler
    * @returns {Function}
    */
-  expect.addChainableMethod = function addChainableMethod(name, methodHandler) {
+  utils.addChainableMethod = function addChainableMethod(name, methodHandler) {
     Assertion.prototype[name] = function() {
 
       var r = methodHandler.apply(this, arguments);
@@ -127,7 +130,7 @@
       }
       return this;
     };
-    return expect;
+    return utils;
   }
   /**
    *
@@ -135,9 +138,9 @@
    * @param realName
    * @returns {Function}
    */
-  expect.addAlias = function addAlias(alias, realName) {
+  utils.addAlias = function addAlias(alias, realName) {
     expect.aliasMap[alias] = realName;
-    return expect;
+    return utils;
   }
 
   function propertyHandlerClosure(flagHandler) {
@@ -150,12 +153,6 @@
         return res;
       }
       return this;
-    };
-  }
-
-  function aliasHandlerClosure(realName) {
-    return function getter() {
-      return this[realName];
     };
   }
 
@@ -185,30 +182,30 @@
    * @api private
    */
 
-  Assertion.prototype.assert = function(truth, msg, error, expected) {
-    var msg = this.flags.not ? error : msg
-      , ok = this.flags.not ? !truth : truth
-      , err;
+  Assertion.prototype.assert = function(truth, message, expected) {
+    var ok;
+    if(this.flags.not){
+      message = 'expected ' + inspect(this.obj) + ' not to ' + message;
+      ok = !truth;
+    }
+    else {
+      message = 'expected ' + inspect(this.obj) + ' to ' + message;
+      ok = truth;
+    }
     if (!ok) {
-      err = new Error(msg.call(this));
-      if (arguments.length > 3) {
+      var err;
+      if (arguments.length > 2) {
+        err = new Error(message + ' ' + inspect(expected));
         err.actual = this.obj;
         err.expected = expected;
         err.showDiff = true;
       }
+      else {
+        err = new Error(message);
+      }
       throw err;
     }
   };
-
-  /**
-   * Function bind implementation.
-   */
-
-  function bind(fn, scope) {
-    return function() {
-      return fn.apply(scope, arguments);
-    }
-  }
 
   /**
    * Array every compatibility
@@ -285,7 +282,7 @@
    * @api private
    */
 
-  function i(obj, showHidden, depth) {
+  function inspect(obj, showHidden, depth) {
     var seen = [];
 
     function stylize(str) {
@@ -467,7 +464,7 @@
     return format(obj, (typeof depth === 'undefined' ? 2 : depth));
   }
 
-  expect.stringify = i;
+  expect.stringify = inspect;
 
   function isArray(ar) {
     return Object.prototype.toString.call(ar) === '[object Array]';
@@ -967,431 +964,332 @@
   module.exports = expect;
   expect.Assertion = Assertion;
 
-  (function() {
-    var nativeMochaRun = mocha.run;
-    mocha.run = function() {
-      expect
-      /**
-       * Checks if the both objects are identical.
-       *
-       * @api public
-       */
-      expect
-        .addProperty('and', function() {
-          return expect(this.obj);
-        })
-        .addProperty('to', function() {
-          this.flags.to = 1;
-        })
-        .addProperty('include', function() {
-          this.flags.include = 1;
-        })
-        .addProperty('not', function() {
-          this.flags.not = 1;
-        })
-        .addProperty('have', function() {
-          this.flags.have = 1;
-        })
-        .addProperty('own', function() {
-          this.flags.own = 1;
-        })
-        .addProperty('only', function() {
-          this.flags.only = 1;
-        })
-        .addProperty('be', function() {
-          this.flags.be = 1;
-        })
-      /**
-       *
-       */
-        .addChainableMethod('identical', function(obj) {
-          this.assert(obj === this.obj, function() {
-            return 'expected ' + i(this.obj) + ' to equal ' + i(obj)
-          }, function() {
-            return 'expected ' + i(this.obj) + ' not to equal ' + i(obj)
-          });
-        })
-        /**
-         * Check if the value is truthy
-         *
-         * http://boards.straightdope.com/sdmb/showpost.php?p=8741075&postcount=28
-         * @api public
-         */
-        .addChainableMethod('truthy', function() {
-          var string = 'be %s[truthy|falsy]';
-          this.assert(!!this.obj, function() {
-            return 'expected ' + i(this.obj) + ' to be truthy'
-          }, function() {
-            return 'expected ' + i(this.obj) + ' to be falsy'
-          });
-        })
-        .addAlias('ok', 'truthy')
-      /**
-       * Creates an anonymous function which calls fn with arguments.
-       *
-       * @api public
-       */.addChainableMethod('withArgs', function() {
-          expect(this.obj).a('function');
-          var fn = this.obj;
-          var args = Array.prototype.slice.call(arguments);
-          return expect(function() {
-            fn.apply(null, args);
-          });
-        })/**
-       * Assert that the function throws.
-       *
-       * @param {Function|RegExp} callback, or regexp to match error string against
-       * @api public
-       */.addChainableMethod('throw', function(fn) {
-          expect(this.obj).a('function');
+  expect.core = function(expect, utils){
 
-          var thrown = false
-            , not = this.flags.not;
+    /**
+     * Checks if the both objects are identical.
+     *
+     * @api public
+     */
+    utils
+      .addProperty('and', function() {
+        return expect(this.obj);
+      })
+      .addProperty('to', function() {
+        this.flags.to = 1;
+      })
+      .addProperty('include', function() {
+        this.flags.include = 1;
+      })
+      .addProperty('not', function() {
+        this.flags.not = 1;
+      })
+      .addProperty('have', function() {
+        this.flags.have = 1;
+      })
+      .addProperty('own', function() {
+        this.flags.own = 1;
+      })
+      .addProperty('only', function() {
+        this.flags.only = 1;
+      })
+      .addProperty('be', function() {
+        this.flags.be = 1;
+      })
+    /**
+     *
+     */
+      .addChainableMethod('identical', function(obj) {
+        this.assert(obj === this.obj, 'identical', inspect(obj));
+      })
+    /**
+     * Check if the value is truthy
+     *
+     * http://boards.straightdope.com/sdmb/showpost.php?p=8741075&postcount=28
+     * @api public
+     */
+      .addChainableMethod('truthy', function() {
+        this.assert(!!this.obj, 'be truthy');
+      })
+      .addAlias('ok', 'truthy')
+    /**
+     * Creates an anonymous function which calls fn with arguments.
+     *
+     * @api public
+     */.addChainableMethod('withArgs', function() {
+        expect(this.obj).a('function');
+        var fn = this.obj;
+        var args = Array.prototype.slice.call(arguments);
+        return expect(function() {
+          fn.apply(null, args);
+        });
+      })/**
+     * Assert that the function throws.
+     *
+     * @param {Function|RegExp} callback, or regexp to match error string against
+     * @api public
+     */.addChainableMethod('throw', function(fn) {
+        expect(this.obj).a('function');
 
-          try {
-            this.obj();
-          } catch (e) {
-            if (isRegExp(fn)) {
-              var subject = 'string' == typeof e ? e : e.message;
-              if (not) {
-                expect(subject).to.not.match(fn);
-              } else {
-                expect(subject).to.match(fn);
-              }
+        var thrown = false
+          , not = this.flags.not;
+
+        try {
+          this.obj();
+        } catch (e) {
+          if (isRegExp(fn)) {
+            var subject = 'string' == typeof e ? e : e.message;
+            if (not) {
+              expect(subject).to.not.match(fn);
             } else {
-              if ('function' == typeof fn) {
-                fn(e);
-              }
-            }
-            thrown = true;
-          }
-
-          if (isRegExp(fn) && not) {
-            // in the presence of a matcher, ensure the `not` only applies to
-            // the matching.
-            this.flags.not = false;
-          }
-
-          var name = this.obj.name || 'fn';
-          this.assert(thrown, function() {
-            return 'expected ' + name + ' to throw an exception'
-          }, function() {
-            return 'expected ' + name + ' not to throw an exception'
-          });
-        }).addAlias('throwError', 'throw').addAlias('throwException', 'throw')/**
-       * Checks if the array is empty.
-       *
-       * @api public
-       */.addChainableMethod('empty', function() {
-          var expectation;
-
-          if ('object' == typeof this.obj && null !== this.obj && !isArray(this.obj)) {
-            if ('number' == typeof this.obj.length) {
-              expectation = !this.obj.length;
-            } else {
-              expectation = !keys(this.obj).length;
+              expect(subject).to.match(fn);
             }
           } else {
-            if ('string' != typeof this.obj) {
-              expect(this.obj).an('object');
+            if ('function' == typeof fn) {
+              fn(e);
             }
-            expect(this.obj).to.only.have.property('length');
+          }
+          thrown = true;
+        }
+
+        if (isRegExp(fn) && not) {
+          // in the presence of a matcher, ensure the `not` only applies to
+          // the matching.
+          this.flags.not = false;
+        }
+
+        var name = this.obj.name || 'fn';
+        this.assert(thrown, 'throw an exception');
+      })
+      .addAlias('throwError', 'throw').addAlias('throwException', 'throw')
+    /**
+     * Checks if the array is empty.
+     *
+     * @api public
+     */.addChainableMethod('empty', function() {
+        var expectation;
+
+        if ('object' == typeof this.obj && null !== this.obj && !isArray(this.obj)) {
+          if ('number' == typeof this.obj.length) {
             expectation = !this.obj.length;
-          }
-
-          this.assert(expectation, function() {
-            return 'expected ' + i(this.obj) + ' to be empty'
-          }, function() {
-            return 'expected ' + i(this.obj) + ' not to be empty'
-          });
-        })
-      /**
-       * Checks if the obj equals another.
-       *
-       * @api public
-       */
-        .addChainableMethod('equal', function(obj) {
-          this.assert(expect.eql(this.obj, obj), function() {
-            return 'expected ' + i(this.obj) + ' to equal ' + i(obj)
-          }, function() {
-            return 'expected ' + i(this.obj) + ' not to equal ' + i(obj)
-          }, obj);
-          return this;
-        })
-        .addAlias('eql', 'equal')
-      /**
-       * Checks if the obj equals another.
-       *
-       * @api public
-       */
-        .addChainableMethod('resemble', function(obj) {
-          this.assert( this.obj == obj, function() {
-            return 'expected ' + i(this.obj) + ' to resemble ' + i(obj)
-          }, function() {
-            return 'expected ' + i(this.obj) + ' not to resemble ' + i(obj)
-          }, obj);
-          return this;
-        })
-        /**
-         * Checks if the obj equals another.
-         *
-         * @api public
-         */
-        .addChainableMethod('resemblelistenstar', function(obj) {
-          this.assert(expect.eql(this.obj, obj), function() {
-            return 'expected ' + i(this.obj) + ' to equal ' + i(obj)
-          }, function() {
-            return 'expected ' + i(this.obj) + ' not to equal ' + i(obj)
-          }, obj);
-          return this;
-        })/**
-       * Assert within start to finish (inclusive).
-       *
-       * @param {Number} start
-       * @param {Number} finish
-       * @api public
-       */.addChainableMethod('within', function(start, finish) {
-          var range = start + '..' + finish;
-          this.assert(this.obj >= start && this.obj <= finish, function() {
-            return 'expected ' + i(this.obj) + ' to be within ' + range
-          }, function() {
-            return 'expected ' + i(this.obj) + ' not to be within ' + range
-          });
-          return this;
-        })
-        .addAlias('between', 'within')
-      /**
-       * Assert within value +- delta (inclusive).
-       *
-       * @param {Number} value
-       * @param {Number} delta
-       * @api public
-       */.addChainableMethod('approximate', function(value, delta) {
-          this.assert(Math.abs(this.obj - value) <= delta, function() {
-            return 'expected ' + i(this.obj) + ' to approximate ' + value + ' +- ' + delta
-          }, function() {
-            return 'expected ' + i(this.obj) + ' not to approximate ' + value + " +- " + delta
-          });
-          return this;
-        }).addAlias('approximately', 'approximate')/**
-       * Assert typeof / instance of
-       *
-       * @api public
-       */.addChainableMethod('a', function(type) {
-          if ('string' == typeof type) {
-            // proper english in error msg
-            var n = /^[aeiou]/.test(type) ? 'n' : '';
-
-            // typeof with support for 'array'
-            this.assert('array' == type ? isArray(this.obj) : 'regexp' == type ? isRegExp(this.obj) : 'object' == type ? 'object' == typeof this.obj && null !== this.obj : type == typeof this.obj, function() {
-              return 'expected ' + i(this.obj) + ' to be a' + n + ' ' + type
-            }, function() {
-              return 'expected ' + i(this.obj) + ' not to be a' + n + ' ' + type
-            });
           } else {
-            // instanceof
-            var name = type.name || 'supplied constructor';
-            this.assert(this.obj instanceof type, function() {
-              return 'expected ' + i(this.obj) + ' to be an instance of ' + name
-            }, function() {
-              return 'expected ' + i(this.obj) + ' not to be an instance of ' + name
-            });
+            expectation = !keys(this.obj).length;
+          }
+        } else {
+          if ('string' != typeof this.obj) {
+            expect(this.obj).an('object');
+          }
+          expect(this.obj).to.only.have.property('length');
+          expectation = !this.obj.length;
+        }
+
+        this.assert(expectation, 'be empty');
+      })
+    /**
+     * Checks if the obj equals another.
+     *
+     * @api public
+     */
+      .addChainableMethod('equal', function(obj) {
+        this.assert(expect.eql(this.obj, obj), 'equal', obj);
+      })
+      .addAlias('eql', 'equal')
+    /**
+     * Checks if the obj equals another.
+     *
+     * @api public
+     */
+      .addChainableMethod('resemble', function(obj) {
+        this.assert( this.obj == obj, 'resemble', obj);
+        return this;
+      })
+    /**
+     * Assert within start to finish (inclusive).
+     *
+     * @param {Number} start
+     * @param {Number} finish
+     * @api public
+     */
+      .addChainableMethod('within', function(start, finish) {
+        var range = start + '..' + finish;
+        this.assert(this.obj >= start && this.obj <= finish, 'be within ' + range);
+        return this;
+      })
+      .addAlias('between', 'within')
+    /**
+     * Assert within value +- delta (inclusive).
+     *
+     * @param {Number} value
+     * @param {Number} delta
+     * @api public
+     */.addChainableMethod('approximate', function(value, delta) {
+        this.assert(Math.abs(this.obj - value) <= delta, 'approximate ' + value + ' +- ' + delta);
+        return this;
+      }).addAlias('approximately', 'approximate')/**
+     * Assert typeof / instance of
+     *
+     * @api public
+     */.addChainableMethod('a', function(type) {
+        if ('string' == typeof type) {
+          // proper english in error msg
+          var n = /^[aeiou]/.test(type) ? 'n' : '';
+
+          // typeof with support for 'array'
+          this.assert('array' == type ? isArray(this.obj) : 'regexp' == type ? isRegExp(this.obj) : 'object' == type ? 'object' == typeof this.obj && null !== this.obj : type == typeof this.obj, 'be a' + n + ' ' + type);
+        } else {
+          // instanceof
+          var name = type.name || 'supplied constructor';
+          this.assert(this.obj instanceof type, 'be an instance of ' + name);
+        }
+      }).addAlias('an', 'a')/**
+     * Assert numeric value above _n_.
+     *
+     * @param {Number} n
+     * @api public
+     */.addChainableMethod('above', function(n) {
+        this.assert(this.obj > n, 'be above ' + n)
+      })
+      .addAlias('greaterThan', 'above')
+    /**
+     * Assert numeric value below _n_.
+     *
+     * @param {Number} n
+     * @api public
+     */
+      .addChainableMethod('below', function(n) {
+        this.assert(this.obj < n, 'be below ' + n);
+        return this;
+      })
+      .addAlias('lessThan', 'below')
+    /**
+     * Assert string value matches _regexp_.
+     *
+     * @param {RegExp} regexp
+     * @api public
+     */
+      .addChainableMethod('match', function(regexp) {
+        this.assert(regexp.exec(this.obj), 'match ' + regexp);
+      })
+    /**
+     * Assert property "length" exists and has value of _n_.
+     *
+     * @param {Number} n
+     * @api public
+     */.addChainableMethod('length', function(n) {
+        expect(this.obj).to.have.property('length');
+        var len = this.obj.length;
+        this.assert(n === len, 'have a length of ' + len);
+      })/**
+     * Assert property _name_ exists, with optional _val_.
+     *
+     * @param {String} name
+     * @param {Mixed} val
+     * @api public
+     */.addChainableMethod('property', function(name, val) {
+        if (this.flags.own) {
+          this.assert(Object.prototype.hasOwnProperty.call(this.obj, name), 'have own property ' + inspect(name));
+        }
+        if (this.flags.not && undefined !== val) {
+          if (undefined === this.obj[name]) {
+            throw new Error(inspect(this.obj) + ' has no property ' + inspect(name));
+          }
+        }
+        else {
+          var hasProp;
+          try {
+            hasProp = name in this.obj
+          } catch (e) {
+            hasProp = undefined !== this.obj[name]
           }
 
-          return this;
-        }).addAlias('an', 'a')/**
-       * Assert numeric value above _n_.
-       *
-       * @param {Number} n
-       * @api public
-       */.addChainableMethod('beGt', function(n) {
-          this.assert(this.obj > n, function() {
-            return 'expected ' + i(this.obj) + ' to be above ' + n
-          }, function() {
-            return 'expected ' + i(this.obj) + ' not to be above ' + n
-          });
-          return this;
-        }).addAlias('greaterThan', 'beGt').addAlias('above', 'beGt')/**
-       * Assert numeric value below _n_.
-       *
-       * @param {Number} n
-       * @api public
-       */.addChainableMethod('beLt', function(n) {
-          this.assert(this.obj < n, function() {
-            return 'expected ' + i(this.obj) + ' to be less than ' + n
-          }, function() {
-            return 'expected ' + i(this.obj) + ' not to be less than ' + n
-          });
-          return this;
-        }).addAlias('lessThan', 'beLt').addAlias('below', 'beLt')/**
-       * Assert string value matches _regexp_.
-       *
-       * @param {RegExp} regexp
-       * @api public
-       */.addChainableMethod('match', function(regexp) {
-          this.assert(regexp.exec(this.obj), function() {
-            return 'expected ' + i(this.obj) + ' to match ' + regexp
-          }, function() {
-            return 'expected ' + i(this.obj) + ' not to match ' + regexp
-          });
-          return this;
-        })/**
-       * Assert property "length" exists and has value of _n_.
-       *
-       * @param {Number} n
-       * @api public
-       */.addChainableMethod('length', function(n) {
-          expect(this.obj).to.have.property('length');
-          var len = this.obj.length;
-          this.assert(n == len, function() {
-            return 'expected ' + i(this.obj) + ' to have a length of ' + n + ' but got ' + len
-          }, function() {
-            return 'expected ' + i(this.obj) + ' not to have a length of ' + len
-          });
-          return this;
-        })/**
-       * Assert property _name_ exists, with optional _val_.
-       *
-       * @param {String} name
-       * @param {Mixed} val
-       * @api public
-       */.addChainableMethod('property', function(name, val) {
-          if (this.flags.own) {
-            this.assert(Object.prototype.hasOwnProperty.call(this.obj, name), function() {
-              return 'expected ' + i(this.obj) + ' to have own property ' + i(name)
-            }, function() {
-              return 'expected ' + i(this.obj) + ' not to have own property ' + i(name)
-            });
-            return this;
-          }
-
-          if (this.flags.not && undefined !== val) {
-            if (undefined === this.obj[name]) {
-              throw new Error(i(this.obj) + ' has no property ' + i(name));
-            }
-          } else {
-            var hasProp;
-            try {
-              hasProp = name in this.obj
-            } catch (e) {
-              hasProp = undefined !== this.obj[name]
-            }
-
-            this.assert(hasProp, function() {
-              return 'expected ' + i(this.obj) + ' to have a property ' + i(name)
-            }, function() {
-              return 'expected ' + i(this.obj) + ' not to have a property ' + i(name)
-            });
-          }
-
-          if (undefined !== val) {
-            this.assert(val === this.obj[name], function() {
-              return 'expected ' + i(this.obj) + ' to have a property ' + i(name) + ' of ' + i(val) + ', but got ' + i(this.obj[name])
-            }, function() {
-              return 'expected ' + i(this.obj) + ' not to have a property ' + i(name) + ' of ' + i(val)
-            });
-          }
-
-          this.obj = this.obj[name];
-          return this;
-        })/**
-       * Assert that the array contains _obj_, string contains _obj_, or object contains _obj_.
-       *
-       * @param {Mixed} obj|string
-       * @api public
-       */.addChainableMethod('contain', function(obj) {
-          if (('object' == typeof obj) && !isArray(obj)) {
-            for (var k in obj) {
-              if (Object.prototype.hasOwnProperty.call(obj, k)) {
-                this.property(k, obj[k]);
-              }
-            }
-          } else {
-            if ('string' == typeof this.obj) {
-              this.assert(~this.obj.indexOf(obj), function() {
-                return 'expected ' + i(this.obj) + ' to contain ' + i(obj)
-              }, function() {
-                return 'expected ' + i(this.obj) + ' not to contain ' + i(obj)
-              });
-            } else {
-              this.assert(~indexOf(this.obj, obj), function() {
-                return 'expected ' + i(this.obj) + ' to contain ' + i(obj)
-              }, function() {
-                return 'expected ' + i(this.obj) + ' not to contain ' + i(obj)
-              });
+          this.assert(hasProp, 'have a property ' + inspect(name));
+        }
+        if (undefined !== val) {
+          this.assert(val === this.obj[name], 'have a property ' + inspect(name) + ' of ' + inspect(val));
+        }
+        this.obj = this.obj[name];
+      })/**
+     * Assert that the array contains _obj_, string contains _obj_, or object contains _obj_.
+     *
+     * @param {Mixed} obj|string
+     * @api public
+     */.addChainableMethod('contain', function(obj) {
+        if (('object' == typeof obj) && !isArray(obj)) {
+          for (var k in obj) {
+            if (Object.prototype.hasOwnProperty.call(obj, k)) {
+              this.property(k, obj[k]);
             }
           }
-          return this;
-        }).addAlias('string', 'contain')/**
-       * Assert exact keys or inclusion of keys by using
-       * the `.own` modifier.
-       *
-       * @param {Array|String ...} keys
-       * @api public
-       */.addChainableMethod('key', function($keys) {
-          var str
-            , ok = true;
-
-          $keys = isArray($keys) ? $keys : Array.prototype.slice.call(arguments);
-
-          if (!$keys.length) {
-            throw new Error('keys required');
-          }
-
-          var actual = keys(this.obj)
-            , len = $keys.length;
-
-          // Inclusion
-          ok = every($keys, function(key) {
-            return ~indexOf(actual, key);
-          });
-
-          // Strict
-          if (!this.flags.not && this.flags.only) {
-            ok = ok && $keys.length == actual.length;
-          }
-
-          // Key string
-          if (len > 1) {
-            $keys = map($keys, function(key) {
-              return i(key);
-            });
-            var last = $keys.pop();
-            str = $keys.join(', ') + ', and ' + last;
+        } else {
+          if ('string' == typeof this.obj) {
+            this.assert(~this.obj.indexOf(obj), 'contain ' + inspect(obj));
           } else {
-            str = i($keys[0]);
+            this.assert(~indexOf(this.obj, obj), 'contain ' + inspect(obj));
           }
+        }
+      }).addAlias('string', 'contain')/**
+     * Assert exact keys or inclusion of keys by using
+     * the `.own` modifier.
+     *
+     * @param {Array|String ...} keys
+     * @api public
+     */.addChainableMethod('key', function($keys) {
+        var str
+          , ok = true;
 
-          // Form
-          str = (len > 1 ? 'keys ' : 'key ') + str;
+        $keys = isArray($keys) ? $keys : Array.prototype.slice.call(arguments);
 
-          // Have / include
-          str = (!this.flags.only ? 'include ' : 'only have ') + str;
+        if (!$keys.length) {
+          throw new Error('keys required');
+        }
 
-          // Assertion
-          this.assert(ok, function() {
-            return 'expected ' + i(this.obj) + ' to ' + str
-          }, function() {
-            return 'expected ' + i(this.obj) + ' not to ' + str
-          });
+        var actual = keys(this.obj)
+          , len = $keys.length;
 
-          return this;
-        }).addAlias('keys', 'key')/**
-       * Assert a failure.
-       *
-       * @param {String ...} custom message
-       * @api public
-       */.addChainableMethod('fail', function(msg) {
-          var error = function() {
-            return msg || "explicit failure";
-          }
-          this.assert(false, error, error);
+        // Inclusion
+        ok = every($keys, function(key) {
+          return ~indexOf(actual, key);
         });
 
-      nativeMochaRun.call(mocha);
-      ;
-    }
-  })();
+        // Strict
+        if (!this.flags.not && this.flags.only) {
+          ok = ok && $keys.length == actual.length;
+        }
+
+        // Key string
+        if (len > 1) {
+          $keys = map($keys, function(key) {
+            return inspect(key);
+          });
+          var last = $keys.pop();
+          str = $keys.join(', ') + ', and ' + last;
+        } else {
+          str = inspect($keys[0]);
+        }
+
+        // Form
+        str = (len > 1 ? 'keys ' : 'key ') + str;
+
+        // Have / include
+        str = (!this.flags.only ? 'include ' : 'only have ') + str;
+
+        // Assertion
+        this.assert(ok, str);
+
+        return this;
+      }).addAlias('keys', 'key')/**
+     * Assert a failure.
+     *
+     * @param {String ...} custom message
+     * @api public
+     */.addChainableMethod('fail', function(msg) {
+        msg = msg || "explicitly fail";
+        this.assert(false, msg);
+      });
+    ;
+  };
+
+  expect.use(expect.core);
 
   if ('undefined' != typeof window) {
     window.expect = module.exports;

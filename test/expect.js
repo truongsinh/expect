@@ -66,7 +66,7 @@ describe('expect', function () {
 
     err(function () {
       expect('test').not.to.be.ok();
-    }, "expected 'test' to be falsy");
+    }, "expected 'test' not to be truthy");
 
     expect().not.to.be.ok().and.to.equal(undefined);
   });
@@ -164,30 +164,30 @@ describe('expect', function () {
 
     err(function () {
       expect(anonItThrows).not.to.throwException();
-    }, 'expected fn not to throw an exception');
+    }, 'expected [Function] not to throw an exception');
 
     err(function () {
       expect(anonItWorks).to.throwException();
-    }, 'expected fn to throw an exception');
+    }, 'expected [Function] to throw an exception');
 
     if (nameSupported) {
       err(function () {
         expect(itWorks).to.throwException();
-      }, 'expected itWorks to throw an exception');
+      }, 'expected [Function: itWorks] to throw an exception');
     } else {
       err(function () {
         expect(itWorks).to.throwException();
-      }, 'expected fn to throw an exception');
+      }, 'expected [Function] to throw an exception');
     }
 
     if (nameSupported) {
       err(function () {
         expect(itThrows).not.to.throwException();
-      }, 'expected itThrows not to throw an exception');
+      }, 'expected [Function: itThrows] not to throw an exception');
     } else {
       err(function () {
         expect(anonItThrows).not.to.throwException();
-      }, 'expected fn not to throw an exception');
+      }, 'expected [Function] not to throw an exception');
     }
   });
 
@@ -447,7 +447,7 @@ describe('expect', function () {
 
     err(function () {
       expect('asd').to.have.property('length', 4);
-    }, "expected 'asd' to have a property 'length' of 4, but got 3");
+    }, "expected 'asd' to have a property 'length' of 4");
 
     err(function () {
       expect('asd').not.to.have.property('length', 3);
@@ -519,7 +519,7 @@ describe('expect', function () {
 
     err(function () {
       expect({ foo: 'foo' }).to.contain({ foo: 'bar' });
-    }, "expected { foo: 'foo' } to have a property 'foo' of 'bar', but got 'foo'");
+    }, "expected { foo: 'foo' } to have a property 'foo' of 'bar'");
   });
 
   it('should test keys(array)', function () {
@@ -620,13 +620,13 @@ describe('expect', function () {
   it('should fail with `fail`', function () {
     err(function () {
         expect().fail();
-    }, "explicit failure");
+    }, "expected undefined to explicitly fail");
   });
 
   it('should fail with `fail` and custom message', function () {
     err(function () {
-        expect().fail("explicit failure with message");
-    }, "explicit failure with message");
+        expect().fail("explicitly fail with message");
+    }, "expected undefined to explicitly fail with message");
   });
 
   // only tests exact aliases
