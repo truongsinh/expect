@@ -1121,8 +1121,6 @@
           // the matching.
           this.flags.not = false;
         }
-
-        var name = this.obj.name || 'fn';
         this.assert(thrown, 'throw an exception');
       })
       .addAlias('throwError', 'throw').addAlias('throwException', 'throw')
@@ -1164,7 +1162,9 @@
      * @api public
      */
       .addChainableMethod('resemble', function(obj) {
+        /* jshint eqeqeq:false*/
         this.assert( this.obj == obj, 'resemble', obj);
+        /* jshint eqeqeq:true*/
         return this;
       })
     /**
@@ -1194,12 +1194,15 @@
      *
      * @api public
      */.addChainableMethod('a', function(type) {
-        if ('string' == typeof type) {
+        if ('string' === typeof type) {
           // proper english in error msg
           var n = /^[aeiou]/.test(type) ? 'n' : '';
 
           // typeof with support for 'array'
-          this.assert('array' == type ? utils.isArray(this.obj) : 'regexp' == type ? utils.isRegExp(this.obj) : 'object' == type ? 'object' == typeof this.obj && null !== this.obj : type == typeof this.obj, 'be a' + n + ' ' + type);
+          this.assert('array' === type ?
+            utils.isArray(this.obj) : 'regexp' === type ?
+            utils.isRegExp(this.obj) : 'object' === type ?
+            'object' === typeof this.obj && null !== this.obj : type === typeof this.obj, 'be a' + n + ' ' + type);
         } else {
           // instanceof
           var name = type.name || 'supplied constructor';
@@ -1211,7 +1214,7 @@
      * @param {Number} n
      * @api public
      */.addChainableMethod('above', function(n) {
-        this.assert(this.obj > n, 'be above ' + n)
+        this.assert(this.obj > n, 'be above ' + n);
       })
       .addAlias('greaterThan', 'above')
     /**
@@ -1261,9 +1264,9 @@
         else {
           var hasProp;
           try {
-            hasProp = name in this.obj
+            hasProp = name in this.obj;
           } catch (e) {
-            hasProp = undefined !== this.obj[name]
+            hasProp = undefined !== this.obj[name];
           }
 
           this.assert(hasProp, 'have a property ' + utils.inspect(name));
@@ -1278,18 +1281,20 @@
      * @param {Mixed} obj|string
      * @api public
      */.addChainableMethod('contain', function(obj) {
-        if (('object' == typeof obj) && !utils.isArray(obj)) {
+        if (('object' === typeof obj) && !utils.isArray(obj)) {
           for (var k in obj) {
             if (Object.prototype.hasOwnProperty.call(obj, k)) {
               this.property(k, obj[k]);
             }
           }
         } else {
-          if ('string' == typeof this.obj) {
+          /* jshint bitwise:false */
+          if ('string' === typeof this.obj) {
             this.assert(~this.obj.indexOf(obj), 'contain ' + utils.inspect(obj));
           } else {
             this.assert(~utils.indexOf(this.obj, obj), 'contain ' + utils.inspect(obj));
           }
+          /* jshint bitwise:true */
         }
       }).addAlias('string', 'contain')/**
      * Assert exact keys or inclusion of keys by using
@@ -1311,13 +1316,15 @@
           , len = $keys.length;
 
         // Inclusion
+        /* jshint bitwise:false */
         ok = utils.every($keys, function(key) {
           return ~utils.indexOf(actual, key);
         });
+        /* jshint bitwise:true */
 
         // Strict
         if (!this.flags.not && this.flags.only) {
-          ok = ok && $keys.length == actual.length;
+          ok = ok && $keys.length === actual.length;
         }
 
         // Key string
@@ -1349,7 +1356,7 @@
      */.addChainableMethod('fail', function(msg) {
         msg = msg || "explicitly fail";
         this.assert(false, msg);
-      });
+      })
     ;
   };
 
