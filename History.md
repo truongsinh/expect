@@ -1,4 +1,25 @@
 
+# 0.3.0-dev / 2014-02-20
+
+## Breaking changes
+
+- `be` is now only a property, not an assertion method
+- `identical` assertion to determine if both vars refers to the same object, i.e `===` for all types
+- `resemble` assertion to determine if both vars are loosely equal, or ==
+- `equal` is semantic (i.e. deep equal, but strict equal, or ===, for primitive), see also `identical` and `resemble`
+
+## Changes
+- version synchronized
+- fix bug infinite loop for cyclic structure, https://github.com/LearnBoost/expect.js/issues/50, 2f085fe
+- `contain` assertion supports sub object, 4b45013
+- `approximate` assertion, 8594f4b
+- `between` alias, c478d4b
+- jshint'ed
+- implement (shim) Object.defineProperty, so expect Assertion object can now be created lazily, improve performance by 10x
+while maintain backward compatibility to IE6+
+- restructure everything to `utils` and `expect.core`, custom plugins can easily be implemented through `expect.use`
+
+
 0.2.0 / 2012-10-19
 ==================
 

@@ -18,14 +18,22 @@ It seems that https://github.com/LearnBoost is too busy with his work, and our b
 has not been updated for months, so I decided to fork it to my own Github account and started reviewing
 all PR, one by one.
 
-Some breaking changes might occur:
+### Breaking changes:
+
+- `be` is no longer a method, i.e you can not use `be()`
+- `eql' is now an alias `equal`, which you usually want to use for equality assertion, except in the next 2 following cases
+- `resemble` is use to assert if 2 object looks like each other, i.e. `==` comparison
+- `identical` is use to assert if 2 variables refer to the same object, i.e.
+ ```
+ expect([]).not.to.be.identical([]);
+ var arr = [];
+ expect(arr).not.to.be.identical(arr);
+ ```
 
 - We shall contact https://www.npmjs.org/~onirame to claim npm package name `expect`, as this package
 was last updated 2 years ago, [ref](https://groups.google.com/forum/#!topic/npm-/odEwfBoxwy4).
 So you might in the future use `npm install expect` and `var expect = require('expect')`. In the mean time,
 in your package.json, you can use `"mocha": "git://github.com/truongsinh/expect"`
-
-- Some refactor and restructure shall be done to make this library modular, inspired by Chai.js
 
 ## Contribution
 
@@ -36,7 +44,7 @@ that it passes that test case.
 
 1. If you are developing a new feature, ask yourself should it be in core or a plugin. Issues page is the best place
 to discuss. We shall keep a list of available plugin in this README (or a separate list in a far future when it is too
-crowded).
+crowded). Take a look at `expect.core` to see how "core" plugin is implemented.
 
 1. Fell free to bump package.json, bower.json and expect.version **build number**, for example "0.2.1-dev", and remember
 to keep it consistent between the 3.
@@ -84,7 +92,7 @@ There are 4 terminal flag: `ok`, `throw`, `empty`, `fail`. The rest are chainabl
 expect([1, 2]).not.be.empty().and.to.contain(1).and.to.contain(2).and.not.to.contain(3);
 ```
 
-**ok**: asserts that the value is _truthy_ or not. This flag is terminal.
+**ok**: asserts that the value is _truthy_ or not.
 
 ```js
 expect(1).to.be.ok();
@@ -93,31 +101,33 @@ expect({}).to.be.ok();
 expect(0).to.not.be.ok();
 ```
 
-**be** / **equal**: asserts `===` equality. This flag is chainable.
+**equal** / **eql**: asserts that two objects are equivalent
 
 ```js
-expect(1).to.be(1)
-expect(1.4 - 0.1).to.not.be(1.3); // see approximate
+expect(1).to.equal(1);
+expect(1.4 - 0.1).to.not.equal(1.3); // see approximate
 expect(NaN).not.to.equal(NaN);
-expect(1).not.to.be(true)
-expect('1').to.not.be(1);
+expect(1).not.to.equal(true);
+expect('1').to.not.equal(1);
+expect({a: 3}).to.equal({a: 3}); // see identical
+expect({a: 3}).not.to.equal({a: 4});
+expect({a: 3}).not.to.equal({b: 3});
 ```
 
-**approximately / approximate**: handy for float rounding error. This flag is chainable.
+**approximately / approximate**: handy for float rounding error.
 ```js
 expect(1.4 - 0.1).to.be.approximately(1.3, 1e-15);
 expect(99.99).approximate(100, 0.1);
 ```
 
-**ok**: asserts that the value is _truthy_ or not. This flag is terminal.
-**eql**: asserts loose equality that works with objects. This flag is chainable.
+**resemble**: asserts loose equality `==`
 
 ```js
-expect({ a: 'b' }).to.eql({ a: 'b' });
-expect(1).to.eql('1');
+expect(1).to.resemble('1');
+expect(0).to.resemble(false);
 ```
 
-**a**/**an**: asserts `typeof` with support for `array` type and `instanceof`. This flag is chainable.
+**a**/**an**: asserts `typeof` with support for `array` type and `instanceof`.
 
 ```js
 // typeof with optional `array`
@@ -132,13 +142,13 @@ expect(tobi).to.be.a(Ferret);
 expect(person).to.be.a(Mammal);
 ```
 
-**match**: asserts `String` regular expression match. This flag is chainable.
+**match**: asserts `String` regular expression match.
 
 ```js
 expect(program.version).to.match(/[0-9]+\.[0-9]+\.[0-9]+/);
 ```
 
-**contain**: asserts indexOf for an array or string, or child key-value for an object. This flag is chainable.
+**contain**: asserts indexOf for an array or string, or child key-value for an object.
 
 ```js
 expect([1, 2]).to.contain(1);
@@ -147,14 +157,14 @@ expect({ foo: 'bar', bar: 'foo' }).to.contain({ bar: 'foo' });
 expect({ foo: 'bar' }).to.not.contain({ foo: 'baz' });
 ```
 
-**length**: asserts array `.length`. This flag is chainable.
+**length**: asserts array `.length`.
 
 ```js
 expect([]).to.have.length(0);
 expect([1,2,3]).to.have.length(3);
 ```
 
-**empty**: asserts that an array is empty or not. This flag is terminal.
+**empty**: asserts that an array is empty or not.
 
 ```js
 expect([]).to.be.empty();
@@ -164,7 +174,7 @@ expect({ my: 'object' }).to.not.be.empty();
 expect([1,2,3]).to.not.be.empty();
 ```
 
-**property**: asserts presence of an own property (and value optionally). This flag is chainable.
+**property**: asserts presence of an own property (and value optionally).
 
 ```js
 expect(window).to.have.property('expect')
@@ -172,7 +182,7 @@ expect(window).to.have.property('expect', expect)
 expect({a: 'b'}).to.have.property('a');
 ```
 
-**key**/**keys**: asserts the presence of a key. Supports the `only` modifier. This flag is chainable.
+**key**/**keys**: asserts the presence of a key. Supports the `only` modifier.
 
 ```js
 expect({ a: 'b' }).to.have.key('a');
@@ -181,7 +191,7 @@ expect({ a: 'b', c: 'd' }).to.only.have.keys(['a', 'c']);
 expect({ a: 'b', c: 'd' }).to.not.only.have.key('a');
 ```
 
-**throwException**/**throwError**: asserts that the `Function` throws or not when called. This flag is terminal.
+**throwException**/**throwError**: asserts that the `Function` throws or not when called.
 
 ```js
 expect(fn).to.throwError(); // synonym of throwException
@@ -192,35 +202,35 @@ expect(fn).to.throwException(/matches the exception message/);
 expect(fn2).to.not.throwException();
 ```
 
-**withArgs**: creates anonymous function to call fn with arguments. This flag is chainable.
+**withArgs**: creates anonymous function to call fn with arguments.
 
 ```js
 expect(fn).withArgs(invalid, arg).to.throwException();
 expect(fn).withArgs(valid, arg).to.not.throwException();
 ```
 
-**within**/**between**: asserts a number within a range. This flag is chainable.
+**within**/**between**: asserts a number within a range.
 
 ```js
 expect(1).to.be.within(0, Infinity)
 expect(2).to.be.between(1, 3);
 ```
 
-**greaterThan**/**above**: asserts `>`. This flag is chainable.
+**greaterThan**/**above**: asserts `>`.
 
 ```js
 expect(3).to.be.above(0);
 expect(5).to.be.greaterThan(3);
 ```
 
-**lessThan**/**below**: asserts `<`. This flag is chainable.
+**lessThan**/**below**: asserts `<`.
 
 ```js
 expect(0).to.be.below(3);
 expect(1).to.be.lessThan(3);
 ```
 
-**fail**: explicitly forces failure. This flag is terminal.
+**fail**: explicitly forces failure.
 
 ```js
 expect().fail()
@@ -287,7 +297,8 @@ and point your browser(s) to `http://localhost:3000/test/`
 
 (The MIT License)
 
-Copyright (c) 2011 Guillermo Rauch &lt;guillermo@learnboost.com&gt;
+Copyright (c) 2014 TruongSinh Tran-Nguyen &lt;i@truongsinh.pro&gt;
+(c) 2011 Guillermo Rauch &lt;guillermo@learnboost.com&gt;
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
