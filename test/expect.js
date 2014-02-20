@@ -1,4 +1,5 @@
-
+/* global expect, describe, it */
+'use strict';
 /**
  * Module dependencies.
  */
@@ -19,7 +20,7 @@ function err (fn, msg) {
 var nameSupported;
 
 (function a () {
-  nameSupported = 'a' == a.name;
+  nameSupported = 'a' === a.name;
 })();
 
 /**
@@ -43,7 +44,7 @@ describe('expect', function () {
 
     err(function () {
       expect('test').to.equal(true);
-    }, "expected 'test' to equal true")
+    }, "expected 'test' to equal true");
   });
 
   it('should allow not.to', function () {
@@ -51,7 +52,7 @@ describe('expect', function () {
 
     err(function () {
       expect(false).not.to.equal(false);
-    }, "expected false not to equal false")
+    }, "expected false not to equal false");
   });
 
   it('should test ok', function () {
@@ -78,14 +79,16 @@ describe('expect', function () {
 
     err(function () {
       expect('').to.equal(false);
-    }, "expected '' to equal false")
+    }, "expected '' to equal false");
   });
 
   it('should test functions with arguments', function () {
     function itThrowsSometimes (first, second) {
+      /* jshint bitwise:false*/
       if (first ^ second) {
         throw new Error('tell');
       }
+      /* jshint bitwise:true*/
     }
 
     expect(itThrowsSometimes).withArgs(false, false).not.to.throwException();
@@ -95,8 +98,9 @@ describe('expect', function () {
   });
 
   it('should test for exceptions', function () {
+    /* global a */
     function itThrows () {
-      a.b.c;
+      a.b.c();
     }
 
     function itThrowsString () {
@@ -108,14 +112,14 @@ describe('expect', function () {
     }
 
     var anonItThrows = function () {
-      a.b.c;
-    }
+      a.b.c();
+    };
 
     function itWorks () {
-      return
+      return;
     }
 
-    var anonItWorks = function () { }
+    var anonItWorks = function () { };
 
     expect(itThrows).to.throwException();
     expect(itWorks).not.to.throwException();
@@ -299,15 +303,15 @@ describe('expect', function () {
   });
 
   it('should test match(regexp)', function () {
-    expect('foobar').to.match(/^foo/)
-    expect('foobar').not.to.match(/^bar/)
+    expect('foobar').to.match(/^foo/);
+    expect('foobar').not.to.match(/^bar/);
 
     err(function () {
-      expect('foobar').to.match(/^bar/i)
+      expect('foobar').to.match(/^bar/i);
     }, "expected 'foobar' to match /^bar/i");
 
     err(function () {
-      expect('foobar').not.to.match(/^foo/i)
+      expect('foobar').not.to.match(/^foo/i);
     }, "expected 'foobar' not to match /^foo/i");
   });
 
@@ -340,16 +344,20 @@ describe('expect', function () {
   });
   it('should test resemble(val)', function () {
     var num = 0;
-    var obj = new String("0");
+    var obj = String("0");
     var str = "0";
     var b = false;
 
     expect(num).to.resemble(num);
     expect(obj).to.resemble(obj);
     expect(str).to.resemble(str);
+    expect(b).to.resemble(b);
     expect(num).to.resemble(obj);
     expect(num).to.resemble(str);
+    expect(num).to.resemble(b);
     expect(obj).to.resemble(str);
+    expect(obj).to.resemble(b);
+    expect(str).to.resemble(b);
 
     expect(null).to.resemble(undefined);
 
@@ -620,13 +628,13 @@ describe('expect', function () {
   it('should fail with `fail`', function () {
     err(function () {
         expect().fail();
-    }, "expected undefined to explicitly fail");
+      }, "expected undefined to explicitly fail");
   });
 
   it('should fail with `fail` and custom message', function () {
     err(function () {
         expect().fail("explicitly fail with message");
-    }, "expected undefined to explicitly fail with message");
+      }, "expected undefined to explicitly fail with message");
   });
 
   // only tests exact aliases
@@ -641,5 +649,5 @@ describe('expect', function () {
 describe('Object define', function(){
   it('should distinguish `not` flag', function(){
     expect(2).not.eql(3).and.eql(2);
-  })
+  });
 });
